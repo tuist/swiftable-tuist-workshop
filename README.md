@@ -26,7 +26,10 @@ bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-worksho
 3. [Project edition](#3-project-edition)
 4. [Project generation](#4-project-generation)
 5. [Multi-target project](#5-multi-target-project)
-4. [Multi-project workspace](#5-multi-project-workspace)
+6. [Multi-project workspace](#6-multi-project-workspace)
+7. [Sharing code across projects](#7-sharing-code-across-projects)
+
+
 5. Declaring dependencies
 6. The project graph
 7. Focused projects
@@ -402,3 +405,104 @@ bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-worksho
 ```
 
 If you get stuck, clone this repo and run `git checkout 6`.
+
+## 7. Sharing code across projects
+
+When you start splitting your project into multiple `Project.swift` a natural need for sharing code to ensure consistency arises.
+Luckily, Tuist provides an answer for that, and it's called **Project Description Helpers**.
+Let's create a folder `Tuist/ProjectDescriptionHelpers` and a file `Project+Swiftable.swift`:
+
+```bash
+mkdir -p Tuist/ProjectDescriptionHelpers
+touch Tuist/ProjectDescriptionHelpers/Project+Swiftable.swift
+```
+
+Then let's edit the Tuist project with `tuist edit` and edit the following files:
+
+
+<details>
+<summary>Tuist/ProjectDescriptionHelpers/Project+Swiftable.swift</summary>
+
+```swift
+import ProjectDescription
+
+public enum Module: String {
+    case app
+    case kit
+    
+    var product: Product {
+        switch self {
+        case .app:
+            return .app
+        case .kit:
+            return .framework
+        }
+    }
+    
+    var name: String {
+        switch self  {
+        case .app: "Swiftable"
+        default: "Swiftable\(rawValue.capitalized)"
+        }
+    }
+    
+    var dependencies: [Module] {
+        switch self {
+        case .app: [.kit]
+        case .kit: []
+        }
+    }
+}
+
+public extension Project {
+    static func swiftable(module: Module) -> Project {
+        let dependencies = module.dependencies.map({ TargetDependency.project(target: $0.name, path: "../\($0.name)") })
+        return Project(name: module.name, targets: [
+            Target(name: module.name,
+                   platform: .iOS,
+                   product: module.product,
+                   bundleId: "com.swiftable.\(module.name)",
+                   sources: [
+                    "./Sources/**/*.swift"
+                   ],
+                   dependencies: dependencies)
+        ])
+    }
+}
+```
+</details>
+
+<details>
+<summary>Modules/Swiftable/Project.swift</summary>
+
+```swift
+import ProjectDescription
+import ProjectDescriptionHelpers
+
+let project = Project.swiftable(module: .app)
+```
+</details>
+
+<details>
+<summary>Modules/SwiftableKit/Project.swift</summary>
+
+```swift
+import ProjectDescription
+import ProjectDescriptionHelpers
+
+let project = Project.swiftable(module: .kit)
+```
+</details>
+
+<!-- Notes
+- Talk about how there's total flexibility about what can be added in the ProjectDescriptionsHelper module
+- Mention that they can use their own abstractions to codify conventions.
+-->
+
+### Before continuing ⚠️
+
+```bash
+bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-workshop/main/test.sh) 7
+```
+
+If you get stuck, clone this repo and run `git checkout 7`.

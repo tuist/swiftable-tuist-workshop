@@ -1,14 +1,4 @@
 import ProjectDescription
+import ProjectDescriptionHelpers
 
-let project = Project(name: "Swiftable", targets: [
-    Target(name: "Swiftable",
-           platform: .iOS,
-           product: .app,
-           bundleId: "com.swiftable.App",
-           sources: [
-            "./Sources/**/*.swift"
-           ],
-           dependencies: [
-            .project(target: "SwiftableKit", path: "../SwiftableKit")
-           ])
-])
+let project = Project.swiftable(module: .app)

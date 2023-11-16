@@ -1,11 +1,4 @@
 import ProjectDescription
+import ProjectDescriptionHelpers
 
-let project = Project(name: "SwiftableKit", targets: [
-    Target(name: "SwiftableKit",
-           platform: .iOS,
-           product: .staticLibrary,
-           bundleId: "com.swiftable.Kit",
-           sources: [
-            "./Sources/**/*.swift"
-           ])
-])
+let project = Project.swiftable(module: .kit)

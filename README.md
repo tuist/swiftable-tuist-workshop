@@ -31,7 +31,6 @@ bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-worksho
 8. [XcodeProj-native integration of Packages](#8-xcodeproj-native-integration-of-packages)
 9. [Focused projects](#9-focused-projects)
 10. [Focused and binary-optimized projects](#9-focused-and-binary-optimized-projects)
-11. Incremental test execution
 
 ## 1. What is Tuist?
 
@@ -669,4 +668,23 @@ tuist generate Swiftable SwiftableKit
 
 Tuist gives developers an interface to **express their target of focus**.
 
-## 9. Focused and binary-optimized projects
+## 10. Focused and binary-optimized projects
+
+Tuist knows your project because you've described it to it, and this is very valuable information that can be used to perform powerful optimizations with little complexity for you.
+One of them is what we call **binary caching**.
+
+Tuist can turn targets of your graph, including packages, into binaries, and replace targets with their binaries at generation time.
+Let's give it a shot:
+
+```bash
+tuist cache warm
+tuist generate
+```
+
+By default, it tries to cache the dependencies. You can even cache your targets too. For example, if you want to focus on `Swiftable`, let's use a binary for everything else:
+
+```bash
+tuist generate Swiftable
+```
+
+> Note: You might need to delete the workspace to mitigate an Xcode issue parsing the workspace.

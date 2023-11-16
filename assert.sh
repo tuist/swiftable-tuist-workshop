@@ -90,6 +90,22 @@ function step3() {
   echo_success
 }
 
+function step4() {
+  expected_lines=("*.xcodeproj" "*.xcworkspace" "Derived/" ".DS_Store")
+
+  gitignore_file=$PROJECT_DIR/.gitignore
+
+  # Check each expected line in the file
+  for line in "${expected_lines[@]}"; do
+    if ! grep -q "$line" "$gitignore_file"; then
+      echo_error "The line '$line' is missing in '$gitignore_file'."
+      exit 1
+    fi
+  done
+
+  echo_success
+}
+
 function echo_success() {
   local message="$1"
   echo -e "${GREEN}"All checks passed successfully."${RESET}"
@@ -110,6 +126,9 @@ case $step_number in
     ;;
   3)
     step3
+    ;;
+  4)
+    step4
     ;;
   *)
     echo "Invalid topic number. Please provide a valid step number (1, 2, or 3)."

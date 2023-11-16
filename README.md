@@ -24,6 +24,7 @@ bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-worksho
 1. [What is Tuist?](#1-what-is-tuist)
 2. [Project creation](#2-project-creation)
 3. [Project edition](#3-project-edition)
+4. [Project generation](#4-project-generation)
 4. Multi-project workspace
 5. Declaring dependencies
 6. The project graph
@@ -166,3 +167,39 @@ bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-worksho
 ```
 
 If you get stuck, clone this repo and run `git checkout 3`.
+
+## 4. Project generation
+
+Once we have the project defined, we can generate it with `tuist generate`.
+The command generates an Xcode project and workspace and opens it automatically.
+If you don't want to open it by default, you can pass the `--no-open` flag:
+
+```bash
+tuist generate
+```
+
+Try to run the app in the generated project.
+
+Note that Tuist generated also a `Derived/` directory containing additional files.
+In some scenarios, for example, when you define the content of the `Info.plist` in code or use other features of Tuist,
+it's necessary to create files that the generated Xcode projects and workspaces can reference.
+Those are automatically generated under the `Derived/` directory relative to the directory containing the `Project.swift`:
+
+The next thing that we are going to do is including the Xcode artifacts and the `Derived` directory in the `.gitignore`:
+
+```
+*.xcodeproj
+*.xcworkspace
+Derived/
+.DS_Store
+```
+
+Thanks to the above change, the chances of Git conflicts are minimized considerably.
+
+### Before continuing ⚠️
+
+```bash
+bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-workshop/main/test.sh) 4
+```
+
+If you get stuck, clone this repo and run `git checkout 4`.

@@ -26,7 +26,7 @@ bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-worksho
 3. [Project edition](#3-project-edition)
 4. [Project generation](#4-project-generation)
 5. [Multi-target project](#5-multi-target-project)
-4. Multi-project workspace
+4. [Multi-project workspace](#5-multi-project-workspace)
 5. Declaring dependencies
 6. The project graph
 7. Focused projects
@@ -297,3 +297,108 @@ bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-worksho
 ```
 
 If you get stuck, clone this repo and run `git checkout 5`.
+
+## 6. Multi-project workspace
+
+Even though with Xcode projects and workspaces gitignored, there's less need for Xcode workspaces.
+You might want to treat projects as an umbrella to group multiple targets that belong to the same domain and use workspaces to group all the projects.
+
+Tuist supports that too.
+To see it in practice, we are going to move the `Project.swift` under `Sources/Swiftable`:
+
+```bash
+mv Sources Modules
+
+mkdir -p Modules/Swiftable/Sources
+mv Modules/Swiftable/ContentView.swift Modules/Swiftable/Sources/ContentView.swift
+mv Modules/Swiftable/SwiftableApp.swift Modules/Swiftable/Sources/SwiftableApp.swift
+
+mkdir -p Modules/SwiftableKit/Sources
+mv Modules/SwiftableKit/SwiftableKit.swift Modules/SwiftableKit/Sources/SwiftableKit.swift
+
+touch Workspace.swift
+
+cp Project.swift Modules/Swiftable/Project.swift
+mv Project.swift Modules/SwiftableKit/Project.swift
+```
+
+We'll end up with the following directory structure:
+
+```bash
+
+├── Modules
+│   ├── Swiftable
+│   │   ├── Project.swift
+│   │   └── Sources
+│   │       ├── ContentView.swift
+│   │       └── SwiftableApp.swift
+│   └── SwiftableKit
+│       ├── Project.swift
+│       └── Sources
+│           └── SwiftableKit.swift
+├── Tuist
+│   └── Config.swift
+└── Workspace.swift
+```
+
+Note how we've organized the project in multiple modules, each of which has its own `Project.swift`. Now let's edit it with `tuist edit` and make sure we have the following content in the files:
+
+
+<details>
+<summary>Workspace.swift</summary>
+
+```swift
+import ProjectDescription
+
+let workspace = Workspace(name: "Swiftable", projects: ["Modules/*"])
+```
+</details>
+
+<details>
+<summary>Modules/Swiftable/Project.swift</summary>
+
+```swift
+import ProjectDescription
+
+let project = Project(name: "Swiftable", targets: [
+    Target(name: "Swiftable",
+           platform: .iOS,
+           product: .app,
+           bundleId: "com.swiftable.App",
+           sources: [
+            "./Sources/**/*.swift"
+           ],
+           dependencies: [
+            .project(target: "SwiftableKit", path: "../SwiftableKit")
+           ])
+])
+```
+</details>
+
+<details>
+<summary>Modules/SwiftableKit/Project.swift</summary>
+
+```swift
+import ProjectDescription
+
+let project = Project(name: "SwiftableKit", targets: [
+    Target(name: "SwiftableKit",
+           platform: .iOS,
+           product: .staticLibrary,
+           bundleId: "com.swiftable.Kit",
+           sources: [
+            "./Sources/**/*.swift"
+           ])
+])
+```
+</details>
+
+Generate the project and makes sure it compiles and runs successfully.
+
+### Before continuing ⚠️
+
+```bash
+bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-workshop/main/test.sh) 6
+```
+
+If you get stuck, clone this repo and run `git checkout 6`.

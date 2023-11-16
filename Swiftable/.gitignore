@@ -2,3 +2,4 @@
 *.xcworkspace
 Derived/
 .DS_Store
+Tuist/Dependencies

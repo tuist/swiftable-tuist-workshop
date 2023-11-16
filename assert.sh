@@ -130,6 +130,39 @@ function step6() {
   echo_success
 }
 
+function step7() {
+  tuist build --generate --path $PROJECT_DIR
+
+  # Check the exit code of the 'tuist generate' command
+  if [ $? -ne 0 ]; then
+    echo_error "'tuist build' command failed."
+    exit 1
+  fi
+
+  echo_success
+}
+
+function step8() {
+  tuist fetch --path $PROJECT_DIR
+  tuist build --generate --path $PROJECT_DIR
+
+  # Check the exit code of the 'tuist generate' command
+  if [ $? -ne 0 ]; then
+    echo_error "'tuist build' command failed."
+    exit 1
+  fi
+
+  gitignore_file=$PROJECT_DIR/.gitignore
+  line_to_check="Tuist/Dependencies"
+
+  if grep -q "$line_to_check" "$gitignore_file"; then
+    echo_success
+  else
+    echo_error "The line '$line_to_check' does not exist in $gitignore_file."
+    exit 1
+  fi
+}
+
 function echo_success() {
   local message="$1"
   echo -e "${GREEN}"All checks passed successfully."${RESET}"
@@ -159,6 +192,12 @@ case $step_number in
     ;;
   6)
     step6
+    ;;
+  7)
+    step7
+    ;;
+  8)
+    step8
     ;;
   *)
     echo "Invalid topic number. Please provide a valid step number (1, 2, or 3)."

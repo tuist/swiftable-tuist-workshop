@@ -28,9 +28,8 @@ bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-worksho
 5. [Multi-target project](#5-multi-target-project)
 6. [Multi-project workspace](#6-multi-project-workspace)
 7. [Sharing code across projects](#7-sharing-code-across-projects)
+8. [XcodeProj-native integration of Packages](#8-xcodeproj-native-integration-of-packages)
 
-
-5. Declaring dependencies
 6. The project graph
 7. Focused projects
 8. Caching
@@ -506,3 +505,145 @@ bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-worksho
 ```
 
 If you get stuck, clone this repo and run `git checkout 7`.
+
+## 8. XcodeProj-native integration of Packages
+
+Tuist supports integrating Swift Packages into your projects using Xcode's standard integration.
+However, that integration is not ideal at scale for a few reasons:
+
+- Clean builds, which happen in CI environments and often locally when developers clean their environments to resolve cryptic Xcode errors, lead to the resolution and compilation of those packages, which slows the builds.
+- There's little configurability of the integration, which creates a strong dependency on Apple to fix the issues that arise via their radar system.
+- There's little room for optimization. For example to turn them into binaries and speed up clean builds.
+
+Because of that, Tuist proposes a different integration method, which **takes the best of SPM and CocoaPods worlds.**
+It uses SPM to resolve the packages, and CocoaPods' idea of integrating dependencies using XcodeProj primitives such as targets and build settings. Let's see how it works in action.
+
+Create the following following file:
+
+```bash
+touch Tuist/Dependencies.swift
+```
+
+And use `tuist edit` to edit it with Xcode. We'll edit the following files:
+
+<details>
+<summary>Tuist/Dependencies.swift</summary>
+
+```swift
+import ProjectDescription
+
+let dependencies = Dependencies(swiftPackageManager: .init([
+    Package.package(url: "https://github.com/httpswift/swifter", .exact("1.5.0"))
+]))
+```
+</details>
+
+<details>
+<summary>Tuist/ProjectDescriptionHelpers/Project+Swiftable.swift</summary>
+
+```diff
+import ProjectDescription
+
++public enum Dependency {
++    case module(Module)
++    case package(String)
++    
++    var targetDependency: TargetDependency {
++        switch self {
++        case let .module(module): TargetDependency.project(target: module.name, path: "../\(module.name)")
++        case let .package(package): TargetDependency.external(name: package)
++        }
++    }
++}
+
+public enum Module: String {
+    case app
+    case kit
+    
+    var product: Product {
+        switch self {
+        case .app:
+            return .app
+        case .kit:
+            return .framework
+        }
+    }
+    
+    var name: String {
+        switch self  {
+        case .app: "Swiftable"
+        default: "Swiftable\(rawValue.capitalized)"
+        }
+    }
+    
++    var dependencies: [Dependency] {
++        switch self {
++        case .app: [.module(.kit)]
++        case .kit: [.package("Swifter")]
++        }
++    }
+}
+
+public extension Project {
+    static func swiftable(module: Module) -> Project {
++        let dependencies = module.dependencies.map(\.targetDependency)
+        return Project(name: module.name, targets: [
+            Target(name: module.name,
+                   platform: .iOS,
+                   product: module.product,
+                   bundleId: "com.swiftable.\(module.name)",
+                   sources: [
+                    "./Sources/**/*.swift"
+                   ],
+                   dependencies: dependencies)
+        ])
+    }
+}
+
+```
+</details>
+
+Note that we add a new `enum`, `Dependency` that we can use to model dependencies, which can now be of two types, `module` or `package`. The enum exposes a `targetDependency` property to return the value that targets need when defining their dependencies.
+
+Now we need to run `tuist fetch`, which uses the Swift Package Manager to resolve the dependencies.
+After they've been fetched, you can run `tuist generate` to generate the project and open it.
+
+Then let's edit the `SwiftableApp.swift` to run the server when the view appears:
+
+```diff
+import SwiftUI
+import SwiftableKit
++import Swifter
+
+@main
+struct SwiftableApp: App {
+    let kit = SwiftableKit()
+    
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
++                .onAppear(perform: {
++                    let server = HttpServer()
++                    server["/hello"] = { .ok(.htmlBody("You asked for \($0)"))  }
++                    try? server.start()
++                    print("Server running")
++                })
+        }
+    }
+}
+```
+
+Before we wrap up this topic, add `Tuist/Dependencies` to the `.gitignore`.
+
+<!-- Notes
+- Talk about how dependencies are integrated as Xcode projects
+- Talk about how they can use the API in Dependencies.swift to override build settings and products.
+-->
+
+### Before continuing ⚠️
+
+```bash
+bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-workshop/main/test.sh) 8
+```
+
+If you get stuck, clone this repo and run `git checkout 8`.

@@ -86,10 +86,83 @@ echo 'import ProjectDescription
 let config = Config()' > Tuist/Config.swift
 ```
 
-### Before continuing
+### Before continuing ⚠️
 
 ```bash
 bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-workshop/main/test.sh) 2
 ```
 
 If you get stuck, clone this repo and run `git checkout 2`.
+
+
+## 3. Project edition
+
+Tuist provides a `tuist edit` command that generates an Xcode project on the fly to edit the manifests.
+The lifecycle of the project is tied to the lifecycle of the `tuist edit` command.
+In other words, when the edit command finishes, the project is deleted.
+
+Let's edit the project:
+
+```
+tuist edit
+```
+
+Then add the following content to the `Project.swift`:
+
+```swift
+import ProjectDescription
+
+let project = Project(name: "Swiftable", targets: [
+    Target(name: "Swiftable", platform: .iOS, product: .app, bundleId: "com.swiftable.App", sources: [
+        "Sources/Swiftable/**/*.swift"
+    ])
+])
+```
+
+We are defining a project that contains an iOS app target that gets the sources from `Sources/Swiftable/**/*.swift`.
+Then we need the app and the home view that the app will present when we launch it. For that, let's create the following files:
+
+<details>
+<summary>Sources/Swiftable/ContentView.swift</summary>
+
+```swift
+import SwiftUI
+
+struct ContentView: View {
+    var body: some View {
+        VStack {
+            Image(systemName: "globe")
+                .imageScale(.large)
+                .foregroundStyle(.tint)
+            Text("Hello, world!")
+        }
+        .padding()
+    }
+}
+```
+</details>
+
+<details>
+<summary>Sources/Swiftable/SwiftableApp.swift</summary>
+
+```swift
+import SwiftUI
+
+@main
+struct SwiftableApp: App {
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+```
+</details>
+
+### Before continuing ⚠️
+
+```bash
+bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-workshop/main/test.sh) 3
+```
+
+If you get stuck, clone this repo and run `git checkout 3`.

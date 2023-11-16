@@ -79,8 +79,15 @@ function step2() {
 }
 
 function step3() {
-  echo_error "Running Step 3"
-  # Add your code for step 3 here
+  tuist generate --no-open --path $PROJECT_DIR
+
+  # Check the exit code of the 'tuist generate' command
+  if [ $? -ne 0 ]; then
+    echo_error "'tuist generate' command failed."
+    exit 1
+  fi
+
+  echo_success
 }
 
 function echo_success() {

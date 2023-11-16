@@ -29,11 +29,9 @@ bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-worksho
 6. [Multi-project workspace](#6-multi-project-workspace)
 7. [Sharing code across projects](#7-sharing-code-across-projects)
 8. [XcodeProj-native integration of Packages](#8-xcodeproj-native-integration-of-packages)
-
-6. The project graph
-7. Focused projects
-8. Caching
-9. Incremental test execution
+9. [Focused projects](#9-focused-projects)
+10. [Focused and binary-optimized projects](#9-focused-and-binary-optimized-projects)
+11. Incremental test execution
 
 ## 1. What is Tuist?
 
@@ -647,3 +645,28 @@ bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-worksho
 ```
 
 If you get stuck, clone this repo and run `git checkout 8`.
+
+## 9. Focused projects
+
+When modular projects grow, it's common to face Xcode and compilation slowness.
+It's normal, your project is large, and Xcode has a lot to index and process.
+If you think about it, it doesn't make sense to load an entire graph of targets,
+when you plan to only **focus** on a few of them.
+
+Tuist provides an answer to that, and it's built into the command that you've been using since the beginning, `tuist generate`.
+
+If you pass a list of targets that you plan to focus on, Tuist will generate projects with only the targets that you need to work on that one. For example, let's say we'd like to focus on `SwiftableKit`, for which we don't need `Swiftable`. We can then run:
+
+```
+tuist generate SwiftableKit
+```
+
+You'll notice that `Swiftable` will magically ✨ disappear from the generated project. If you want to include it too, you can pass it in the list of arguments:
+
+```
+tuist generate Swiftable SwiftableKit
+```
+
+Tuist gives developers an interface to **express their target of focus**.
+
+## 9. Focused and binary-optimized projects

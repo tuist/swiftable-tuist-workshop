@@ -22,13 +22,13 @@ bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-worksho
 ## Topics
 
 1. [What is Tuist?](#1-what-is-tuist)
-2. [Project creation](#2-project-creation)
-3. [Project edition](#3-project-edition)
-4. [Project generation](#4-project-generation)
-5. [Multi-target project](#5-multi-target-project)
-6. [Multi-project workspace](#6-multi-project-workspace)
-7. [Sharing code across projects](#7-sharing-code-across-projects)
-8. [XcodeProj-native integration of Packages](#8-xcodeproj-native-integration-of-packages)
+2. [Project creation](#2-project-creation) - Commit: `87bce844f467b428eac8110771cd4ae5a9698392`
+3. [Project edition](#3-project-edition) - Commit: `424042c0c0d588bb60e1ee174ce6770386bd123b`
+4. [Project generation](#4-project-generation) - Commit: `542ccb00cc310c707dca25bf2fff1641fb49a878`
+5. [Multi-target project](#5-multi-target-project) - Commit: `08ceff08fcd827ce99ff9b8a30bdf6d366270227`
+6. [Multi-project workspace](#6-multi-project-workspace) - Commit: `952a05d4d65492a4efc2be9f1e2cb742ada2ab21`
+7. [Sharing code across projects](#7-sharing-code-across-projects) - Commit: `732f5d19a881c977fe857c7842743e5983e14551`
+8. [XcodeProj-native integration of Packages](#8-xcodeproj-native-integration-of-packages) - Commit: `80d5958729a31ffa76193387e928743bdc5fd989`
 9. [Focused projects](#9-focused-projects)
 10. [Focused and binary-optimized projects](#9-focused-and-binary-optimized-projects)
 

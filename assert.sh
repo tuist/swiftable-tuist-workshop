@@ -106,6 +106,18 @@ function step4() {
   echo_success
 }
 
+function step5() {
+  tuist build --path $PROJECT_DIR
+
+  # Check the exit code of the 'tuist generate' command
+  if [ $? -ne 0 ]; then
+    echo_error "'tuist build' command failed."
+    exit 1
+  fi
+
+  echo_success
+}
+
 function echo_success() {
   local message="$1"
   echo -e "${GREEN}"All checks passed successfully."${RESET}"
@@ -129,6 +141,9 @@ case $step_number in
     ;;
   4)
     step4
+    ;;
+  5)
+    step5
     ;;
   *)
     echo "Invalid topic number. Please provide a valid step number (1, 2, or 3)."

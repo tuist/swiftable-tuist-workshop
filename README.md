@@ -25,6 +25,7 @@ bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-worksho
 2. [Project creation](#2-project-creation)
 3. [Project edition](#3-project-edition)
 4. [Project generation](#4-project-generation)
+5. [Multi-target project](#5-multi-target-project)
 4. Multi-project workspace
 5. Declaring dependencies
 6. The project graph
@@ -203,3 +204,96 @@ bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-worksho
 ```
 
 If you get stuck, clone this repo and run `git checkout 4`.
+
+## 5. Multi-target project
+
+At some point in the lifetime of a project,
+it becomes necessary to modularize a project into multiple targets.
+For example to share source code across multiple targets.
+
+Tuist supports that by abstracting away all the complexities that are associated with linking,
+regardless of the complexity of your graph.
+
+To see it in practice, we are going to create a new target called `SwiftableKit` that contains the logic for the app.
+Then we are going to link the `Swiftable` target with the `SwiftableKit` target.
+
+First, let's edit the `Project.swift` file:
+
+```bash
+tuist edit
+```
+
+And add the new target to the list:
+
+```diff
+import ProjectDescription
+
+let project = Project(name: "Swiftable", targets: [
+    Target(name: "Swiftable",
+           platform: .iOS,
+           product: .app,
+           bundleId: "com.swiftable.App",
+           sources: [
+            "Sources/Swiftable/**/*.swift"
+           ],
++           dependencies: [
++            .target(name: "SwiftableKit")
++           ]),
++    Target(name: "SwiftableKit",
++           platform: .iOS,
++           product: .framework,
++           bundleId: "com.swiftable.Kit",
++           sources: [
++            "Sources/SwiftableKit/**/*.swift"
++           ])
+])
+```
+
+We can then create the following source file:
+
+<details>
+<summary>Sources/SwiftableKit/SwiftableKit.swift</summary>
+
+```swift
+import Foundation
+
+public class SwiftableKit {
+    public init() {}
+    public func boludo() {}
+}
+```
+</details>
+
+And generate the project with `tuist generate`. Then import the framework from `Swiftable` and instantiate the above class to make sure the linking works successfully:
+
+```diff
+import SwiftUI
++import SwiftableKit
+
+@main
+struct SwiftableApp: App {
++    let kit = SwiftableKit()
+    
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+```
+
+Run the app and confirm that everything works as expected.
+Note how Tuist added a build phase to the `Swiftable` to embed the dynamic framework automatically. This is necessary for the dynamic linker to link the framework at launch time.
+
+<!-- Notes
+- Change the platform to macOS and show how it validates the graph.
+- Change the type to static library and show how the embed build phase is gone.
+ -->
+
+### Before continuing ⚠️
+
+```bash
+bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-workshop/main/test.sh) 5
+```
+
+If you get stuck, clone this repo and run `git checkout 5`.

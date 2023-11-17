@@ -11,7 +11,7 @@ you can run the following command passing the topic number that you just complet
 
 ```bash
 # Confirming the completion of step 1
-bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-workshop/main/test.sh) 1
+bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-workshop/main/assert.sh) 1
 ```
 
 ## Requirements

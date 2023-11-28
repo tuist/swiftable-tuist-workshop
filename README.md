@@ -32,6 +32,7 @@ bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-worksho
 9. [Focused projects](#9-focused-projects)
 10. [Focused and binary-optimized projects](#9-focused-and-binary-optimized-projects)
 11. [Bonus 1. Synthesized resource interfaces](#bonus-1-synthesized-resource-interfaces)
+12. [Bonus 2. Templates](#bonus-2-templates)
 
 ## 1. What is Tuist?
 
@@ -758,3 +759,121 @@ public enum Module: String {
     }
 }
 ```
+
+## Bonus 2. Templates
+
+Tuist has a command, `tuist scaffold`, to automate the generation of content in a project.
+Scaffold uses templates defined in a `Tuist/Templates`, and templates are a combination of a manifest file and Stencil files.
+
+We are going to implement a template to create new **feature modules** in the project.
+Feature modules are horizontally distributed (they don't depend on each other),
+and they all depend on `SwiftableKit`.
+
+The first step will be adjusting our helpers at `Tuist/ProjectDescriptionHelpers/Project+Swiftable.swift` to account for the new module type:
+
+```diff
++public enum Module {
+    case app
+    case kit
++    case feature(String)
+    
+    var rawValue: String {
+        switch self {
+        case .app: "app"
+        case .kit: "kit"
++        case .feature(let feature): feature
+        }
+    }
+        
+    var product: Product {
+        switch self {
+        case .app:
+            return .app
+        case .kit:
+            return .staticLibrary
++        case .feature:
++            return .staticLibrary
+        }
+    }
+    
+    var name: String {
+        switch self  {
+        case .app: "Swiftable"
++        case let .feature(name): name.capitalized
+        default: "Swiftable\(rawValue.capitalized)"
+        }
+    }
+    
+    var dependencies: [Dependency] {
+        switch self {
+        case .app: [.module(.kit)]
+        case .kit: [.package("Swifter")]
++        case .feature: [.module(.kit)]
+        }
+    }
+    
+    var resources: ProjectDescription.ResourceFileElements? {
+        switch self {
+        case .kit: return ["Resources/**/*"]
+        case .app: return nil
++        case .feature: return nil
+        }
+    }
+}
+```
+
+Once we have the helpers adjusted, we can create the template at `Tuist/Templates/feature`:
+
+<details>
+<summary>Tuist/Templates/feature/feature.swift</summary>
+
+```swift
+import ProjectDescription
+
+let nameAttribute: Template.Attribute = .required("name")
+
+let template = Template(
+    description: "Creates a new feature module",
+    attributes: [
+        nameAttribute,
+    ],
+    items: [
+        .file(path: "Modules/\(nameAttribute)/Project.swift",
+              templatePath: "Feature/Project.stencil"),
+        .file(path: "Modules/\(nameAttribute)/Sources/Feature.swift",
+              templatePath: "Feature/Sources/Feature.stencil")
+    ]
+)
+```
+</details>
+
+<details>
+<summary>Tuist/Templates/feature/Feature/Project.stencil</summary>
+
+```stencil
+import ProjectDescription
+import ProjectDescriptionHelpers
+
+let project = Project.swiftable(module: .feature("{{name}}"))
+```
+</details>
+
+<details>
+<summary>Tuist/Templates/feature/Feature/Sources/Feature.stencil</summary>
+
+```stencil
+import Foundation
+
+public class {{name | capitalize}} {
+    public init() {}
+}
+```
+</details>
+
+Once we have the template created, we can scaffold a new feature by running:
+
+```bash
+tuist scaffold feature --name Settings
+```
+
+The new module should get created at `Modules/Settings`. **Note** that you'll have to explicitly declare the dependency between the `Swiftable` module (app) and the new feature module.

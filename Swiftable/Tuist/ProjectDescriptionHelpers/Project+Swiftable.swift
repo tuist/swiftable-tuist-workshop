@@ -12,15 +12,26 @@ public enum Dependency {
     }
 }
 
-public enum Module: String {
+public enum Module {
     case app
     case kit
+    case feature(String)
     
+    var rawValue: String {
+        switch self {
+        case .app: "app"
+        case .kit: "kit"
+        case .feature(let feature): feature
+        }
+    }
+        
     var product: Product {
         switch self {
         case .app:
             return .app
         case .kit:
+            return .staticLibrary
+        case .feature:
             return .staticLibrary
         }
     }
@@ -28,6 +39,7 @@ public enum Module: String {
     var name: String {
         switch self  {
         case .app: "Swiftable"
+        case let .feature(name): name.capitalized
         default: "Swiftable\(rawValue.capitalized)"
         }
     }
@@ -36,6 +48,7 @@ public enum Module: String {
         switch self {
         case .app: [.module(.kit)]
         case .kit: [.package("Swifter")]
+        case .feature: [.module(.kit)]
         }
     }
     
@@ -43,6 +56,7 @@ public enum Module: String {
         switch self {
         case .kit: return ["Resources/**/*"]
         case .app: return nil
+        case .feature: return nil
         }
     }
 }

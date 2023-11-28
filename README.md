@@ -31,6 +31,7 @@ bash <(curl -sSL https://raw.githubusercontent.com/tuist/swiftable-tuist-worksho
 8. [XcodeProj-native integration of Packages](#8-xcodeproj-native-integration-of-packages) - Commit: `80d5958729a31ffa76193387e928743bdc5fd989`
 9. [Focused projects](#9-focused-projects)
 10. [Focused and binary-optimized projects](#9-focused-and-binary-optimized-projects)
+11. [Bonus 1. Synthesized resource interfaces](#bonus-1-synthesized-resource-interfaces)
 
 ## 1. What is Tuist?
 
@@ -688,3 +689,72 @@ tuist generate Swiftable
 ```
 
 > Note: You might need to delete the workspace to mitigate an Xcode issue parsing the workspace.
+
+## Bonus 1. Synthesized resource interfaces
+
+By default,
+Tuist [synthesizes interfaces](https://docs.tuist.io/guides/resources) to access the resources in your project.
+It does so for a few reasons:
+
+- Add support for resources to products that don't support them, like libraries.
+- Help reduce the likelihood of runtime errors by leveraging the compiler.
+
+To see it in action, let's edit the project description helper to include resources in our targets:
+
+```diff
+// Tuist/ProjectDescriptionHelpers/Project+Swiftable.swift
+public enum Module: String {
++    var resources: ProjectDescription.ResourceFileElements? {
++        switch self {
++        case .kit: return ["Resources/**/*"]
++        case .app: return nil
++        }
++    }
+}
+
+public extension Project {
+    static func swiftable(module: Module) -> Project {
+        let dependencies = module.dependencies.map(\.targetDependency)
+        return Project(name: module.name, targets: [
+            Target(name: module.name,
+                   platform: .iOS,
+                   product: module.product,
+                   bundleId: "com.swiftable.\(module.name)",
+                   sources: [
+                    "./Sources/**/*.swift"
+                   ],
++                   resources: module.resources,
+                   dependencies: dependencies)
+        ])
+    }
+}
+```
+
+Then create the following file at `Modules/SwiftableKit/Resources/swiftable.strings`:
+
+```strings
+"conference" = "swiftable";
+```
+
+And then run `tuist generate`. You'll notice that the generated project now contains a `SwiftableKitStrings.conference` to access the string with the `conference` key.
+
+This feature is powered by [SwiftGen](https://github.com/SwiftGen/SwiftGen) and you can extend it with additional templates.
+
+To see how Tuist adds support for resources to products that don't support it, change the product of the `SwiftableKit` to `.staticLibrary` and generate the project again. You'll notice that Tuist generates a bundle and configures the build phases accordingly to ensure the bundle ends up copied inside the app.
+
+```diff
+// Tuist/ProjectDescriptionHelpers/Project+Swiftable.swift
+public enum Module: String {
+    case app
+    case kit
+    
+    var product: Product {
+        switch self {
+        case .app:
+            return .app
+        case .kit:
++            return .staticLibrary
+        }
+    }
+}
+```

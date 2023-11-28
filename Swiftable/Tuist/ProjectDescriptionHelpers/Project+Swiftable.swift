@@ -21,7 +21,7 @@ public enum Module: String {
         case .app:
             return .app
         case .kit:
-            return .framework
+            return .staticLibrary
         }
     }
     
@@ -38,6 +38,13 @@ public enum Module: String {
         case .kit: [.package("Swifter")]
         }
     }
+    
+    var resources: ProjectDescription.ResourceFileElements? {
+        switch self {
+        case .kit: return ["Resources/**/*"]
+        case .app: return nil
+        }
+    }
 }
 
 public extension Project {
@@ -51,6 +58,7 @@ public extension Project {
                    sources: [
                     "./Sources/**/*.swift"
                    ],
+                   resources: module.resources,
                    dependencies: dependencies)
         ])
     }

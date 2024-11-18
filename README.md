@@ -1,5 +1,8 @@
 # Swiftable Tuist Workshop
 
+> [!WARNING]
+> A more generic and up-to-date version of this workshop is available at [tuist/workshop](https://github.com/tuist/workshop)
+
 In this workshop, we will explore [Tuist](https://tuist.io) by creating a project and experimenting with various features.
 
 The workshop is structured around a series of topics that are presented and should be followed sequentially. If, for any reason, you find yourself stuck in one of the topics, you will discover a commit SHA at the end of the topic that you can use to continue with the upcoming topics.
